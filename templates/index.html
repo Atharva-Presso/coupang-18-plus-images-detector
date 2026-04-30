@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coupang 18+ Badge Scanner</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f6f8;
+            color: #1a1a1a;
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+            color: #1a73e8;
+        }
+        .subtitle {
+            color: #5f6368;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e1e4e8;
+        }
+        .card h2 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #3c4043;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+        }
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+        .helper {
+            font-size: 11px;
+            color: #5f6368;
+            margin-top: 6px;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        button:hover { background: #1557b0; }
+        button:disabled { background: #9aa0a6; cursor: not-allowed; }
+        button.secondary {
+            background: #34a853;
+            margin-left: 8px;
+        }
+        button.secondary:hover { background: #2d8e47; }
+        .field { margin-bottom: 16px; }
+        .status-bar {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            padding: 12px;
+            background: #f1f3f4;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .status-item strong {
+            display: block;
+            font-size: 11px;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .status-value {
+            font-family: monospace;
+            font-size: 14px;
+            color: #1a1a1a;
+        }
+        .status-value.running { color: #f9ab00; }
+        .status-value.done { color: #34a853; }
+        .status-value.idle { color: #5f6368; }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 12px;
+            padding: 16px;
+            border-radius: 6px;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .log-empty {
+            color: #6a6a6a;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #5f6368;
+        }
+        td a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        td a:hover { text-decoration: underline; }
+        .results-table-wrap {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+        }
+        .error {
+            background: #fce8e6;
+            color: #c5221f;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .info-box {
+            background: #e8f0fe;
+            color: #1967d2;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Coupang TW · 18+ Badge Scanner</h1>
+        <p class="subtitle">Detects products on category pages where the thumbnail is replaced by the High18.png age-gate placeholder.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Input</h2>
+                <div class="info-box">
+                    Pages 1 to 9 will be scanned per category. Cost: ~675 ScrapingBee credits per category (stealth proxy + JS render).
+                </div>
+
+                <div class="field">
+                    <label>ScrapingBee API Key</label>
+                    <input type="password" id="apiKey" placeholder="Leave blank to use SCRAPINGBEE_API_KEY env var">
+                    <div class="helper">Stored in browser memory only, not saved.</div>
+                </div>
+
+                <div class="field">
+                    <label>Category URLs (one per line)</label>
+                    <textarea id="urls" placeholder="https://www.tw.coupang.com/categories/%E6%89%8B%E6%A9%9F-550279
+https://www.tw.coupang.com/categories/..."></textarea>
+                </div>
+
+                <button id="startBtn" onclick="startScan()">Start Scan</button>
+                <button class="secondary" id="downloadBtn" onclick="downloadCsv()" disabled>Download CSV</button>
+
+                <div id="error" class="error" style="display:none;"></div>
+
+                <div class="status-bar">
+                    <div class="status-item">
+                        <strong>Status</strong>
+                        <span class="status-value idle" id="statusValue">Idle</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Progress</strong>
+                        <span class="status-value" id="progressValue">0 / 0</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Flagged</strong>
+                        <span class="status-value" id="flaggedValue">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Live Log</h2>
+                <div class="log" id="log"><span class="log-empty">Waiting to start...</span></div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h2>Flagged Products</h2>
+            <div class="results-table-wrap" id="resultsWrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:35%">Product Name</th>
+                            <th style="width:30%">Product URL</th>
+                            <th style="width:35%">Category URL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr><td colspan="3" style="text-align:center; color:#9aa0a6; padding:30px;">No results yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pollInterval = null;
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 6000);
+        }
+
+        async function startScan() {
+            const apiKey = document.getElementById('apiKey').value;
+            const urls = document.getElementById('urls').value;
+            if (!urls.trim()) {
+                showError('Please enter at least one category URL');
+                return;
+            }
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            try {
+                const resp = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({api_key: apiKey, urls: urls})
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showError(data.error || 'Failed to start');
+                    btn.disabled = false;
+                    btn.textContent = 'Start Scan';
+                    return;
+                }
+                btn.textContent = 'Scanning...';
+                document.getElementById('downloadBtn').disabled = true;
+                document.getElementById('log').innerHTML = '';
+                pollInterval = setInterval(pollStatus, 1500);
+            } catch (e) {
+                showError('Network error: ' + e.message);
+                btn.disabled = false;
+                btn.textContent = 'Start Scan';
+            }
+        }
+
+        async function pollStatus() {
+            try {
+                const resp = await fetch('/status');
+                const data = await resp.json();
+
+                // Status badge
+                const sv = document.getElementById('statusValue');
+                if (data.running) {
+                    sv.textContent = 'Running';
+                    sv.className = 'status-value running';
+                } else if (data.finished_at) {
+                    sv.textContent = 'Done';
+                    sv.className = 'status-value done';
+                } else {
+                    sv.textContent = 'Idle';
+                    sv.className = 'status-value idle';
+                }
+
+                // Progress
+                document.getElementById('progressValue').textContent =
+                    `${data.current_category_index} / ${data.total_categories}`;
+                document.getElementById('flaggedValue').textContent = data.row_count;
+
+                // Log
+                const logEl = document.getElementById('log');
+                const wasAtBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 30;
+                logEl.textContent = data.log.join('\n');
+                if (wasAtBottom) logEl.scrollTop = logEl.scrollHeight;
+
+                if (!data.running && data.finished_at) {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('startBtn').textContent = 'Start Scan';
+                    if (data.row_count > 0) {
+                        document.getElementById('downloadBtn').disabled = false;
+                    }
+                    loadResults();
+                }
+            } catch (e) {
+                console.error('Poll error:', e);
+            }
+        }
+
+        async function loadResults() {
+            const resp = await fetch('/results');
+            const data = await resp.json();
+            const tbody = document.getElementById('resultsBody');
+            if (!data.rows || data.rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9aa0a6; padding:30px;">No flagged products found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.rows.map(r => `
+                <tr>
+                    <td>${escapeHtml(r.product_name)}</td>
+                    <td><a href="${r.product_url}" target="_blank">View</a></td>
+                    <td><a href="${r.category_url_found_on}" target="_blank">${shortenUrl(r.category_url_found_on)}</a></td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function shortenUrl(u) {
+            try {
+                const parts = u.split('/categories/');
+                return parts.length > 1 ? '...' + decodeURIComponent(parts[1]).substring(0, 40) : u;
+            } catch (e) { return u; }
+        }
+
+        function downloadCsv() {
+            window.location.href = '/download';
+        }
+
+        // Restore log on page load if scan is running
+        pollStatus();
+    </script>
+</body>
+</html>

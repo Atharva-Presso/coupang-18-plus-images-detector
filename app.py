@@ -108,6 +108,8 @@ def fetch_page(api_key, url, retries=3):
             if resp.status_code == 200:
                 return resp.text, cost
             log(f"    ⚠ HTTP {resp.status_code} (attempt {attempt+1}) — {url}")
+            if resp.status_code == 401:
+                log(f"    ⚠ 401 body: {resp.text[:200]}")
         except Exception as e:
             log(f"    ✗ Exception attempt {attempt+1}: {e}")
         time.sleep(2 ** attempt)
@@ -192,10 +194,17 @@ def index():
 def start_scan():
     data = request.json
     api_key = data.get("api_key", "").strip()
+    # Fall back to environment variable if not provided in UI
+    if not api_key:
+        api_key = os.environ.get("SCRAPINGBEE_API_KEY", "")
     urls_raw = data.get("urls", "").strip()
 
     if not api_key:
         return jsonify({"error": "ScrapingBee API key is required"}), 400
+
+    # Debug: log first/last 4 chars of key to verify it's arriving
+    key_preview = api_key[:4] + "..." + api_key[-4:] if len(api_key) > 8 else "too_short"
+    print(f"[DEBUG] API key received: {key_preview} (len={len(api_key)})")
 
     category_urls = [u.strip() for u in urls_raw.splitlines() if u.strip()]
     if not category_urls:

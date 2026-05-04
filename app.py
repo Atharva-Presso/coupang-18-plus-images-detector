@@ -118,15 +118,15 @@ def fetch_page(api_key, url, retries=3):
     return None, 0
 
 # ── Scanner thread ─────────────────────────────────────────────────────────────
-def run_scan(api_key, category_urls):
+def run_scan(api_key, category_urls, page_from=1, page_to=9):
+    total_pages = len(category_urls) * (page_to - page_from + 1)
     with state_lock:
         scan_state.update({"running": True, "logs": [], "results": [],
                            "progress": 0, "flagged_count": 0,
-                           "pages_done": 0, "total_pages": len(category_urls) * 9,
+                           "pages_done": 0, "total_pages": total_pages,
                            "error": None})
 
     all_results = []
-    total_pages = len(category_urls) * 9
     pages_done = 0
     total_credits = 0
 
@@ -137,9 +137,9 @@ def run_scan(api_key, category_urls):
             seen_in_cat = set()
             cat_flagged = 0
 
-            for page in range(1, 10):
+            for page in range(page_from, page_to + 1):
                 page_url = f"{clean}?page={page}"
-                log(f"  🔍 Fetching page {page}/9 …")
+                log(f"  🔍 Fetching page {page}/{page_to} …")
 
                 html, cost = fetch_page(api_key, page_url)
                 try:
@@ -212,13 +212,18 @@ def start_scan():
     if not category_urls:
         return jsonify({"error": "At least one category URL is required"}), 400
 
+    page_from = max(1, min(9, int(data.get("page_from", 1))))
+    page_to   = max(1, min(9, int(data.get("page_to", 9))))
+    if page_from > page_to:
+        page_from, page_to = page_to, page_from
+
     with state_lock:
         if scan_state["running"]:
             return jsonify({"error": "Scan already running"}), 400
 
-    t = threading.Thread(target=run_scan, args=(api_key, category_urls), daemon=True)
+    t = threading.Thread(target=run_scan, args=(api_key, category_urls, page_from, page_to), daemon=True)
     t.start()
-    return jsonify({"ok": True, "pages": len(category_urls) * 9})
+    return jsonify({"ok": True, "pages": len(category_urls) * (page_to - page_from + 1)})
 
 @app.route("/status")
 def status():

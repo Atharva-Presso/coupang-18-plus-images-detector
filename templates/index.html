@@ -343,6 +343,16 @@
       <textarea id="urlsInput" placeholder="https://www.tw.coupang.com/categories/…&#10;https://www.tw.coupang.com/categories/…"></textarea>
     </div>
 
+    <div class="input-group">
+      <label>PAGE RANGE</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="pageFrom" value="1" min="1" max="9" style="width:70px;text-align:center">
+        <span style="color:var(--muted);font-family:var(--mono);font-size:12px">to</span>
+        <input type="number" id="pageTo" value="9" min="1" max="9" style="width:70px;text-align:center">
+        <span style="color:var(--muted);font-family:var(--mono);font-size:11px;flex:1">of 9 pages per category</span>
+      </div>
+    </div>
+
     <div class="error-banner" id="errorBanner"></div>
 
     <div class="progress-block">
@@ -437,7 +447,12 @@
     fetch('/start', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ api_key: apiKey, urls })
+      body: JSON.stringify({
+        api_key: apiKey,
+        urls,
+        page_from: parseInt(document.getElementById('pageFrom').value) || 1,
+        page_to:   parseInt(document.getElementById('pageTo').value)   || 9,
+      })
     })
     .then(r => r.json())
     .then(d => {

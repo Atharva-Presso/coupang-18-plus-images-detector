@@ -89,6 +89,20 @@ def extract_flagged_products(html, category_url):
     return list(found.values())
 
 # ── ScrapingBee fetch ──────────────────────────────────────────────────────────
+def get_credits_remaining(api_key):
+    """Call ScrapingBee usage API to get remaining credit balance."""
+    try:
+        resp = requests.get(
+            "https://app.scrapingbee.com/api/v1/usage",
+            params={"api_key": api_key},
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("max_api_credit", "?"), data.get("used_api_credit", "?")
+    except Exception:
+        pass
+    return "?", "?"
 def fetch_page(api_key, url, retries=3):
     for attempt in range(retries):
         try:
@@ -104,10 +118,8 @@ def fetch_page(api_key, url, retries=3):
                 },
                 timeout=180,
             )
-            cost = resp.headers.get("Spb-Cost", "?")
-            credits_remaining = resp.headers.get("Spb-Available", "?")
+            cost = resp.headers.get("Spb-cost", "?")
             if resp.status_code == 200:
-                log(f"    💳 Credits remaining: {credits_remaining} (cost this page: {cost})")
                 return resp.text, cost
             log(f"    ⚠ HTTP {resp.status_code} (attempt {attempt+1}) — {url}")
             if resp.status_code == 401:
@@ -131,6 +143,14 @@ def run_scan(api_key, category_urls, page_from=1, page_to=9):
     total_credits = 0
 
     try:
+        # Show credit balance before starting
+        max_credits, used_credits = get_credits_remaining(api_key)
+        if max_credits != "?":
+            remaining = int(max_credits) - int(used_credits)
+            log(f"💳 ScrapingBee credits — remaining: {remaining} / {max_credits}")
+        else:
+            log(f"💳 Could not fetch credit balance")
+
         for cat_url in category_urls:
             clean = cat_url.split("?")[0]
             log(f"\n📂 Category: {clean}")
@@ -165,7 +185,7 @@ def run_scan(api_key, category_urls, page_from=1, page_to=9):
                         new_on_page += 1
                         cat_flagged += 1
 
-                log(f"    ✅ Page {page}: {html.count('High18')} badge(s) found, {new_on_page} new unique")
+                log(f"    ✅ Page {page}: {html.count('High18')} badge(s) found, {new_on_page} new unique | cost: {cost} credits")
 
                 with state_lock:
                     scan_state["results"] = list(all_results)
@@ -176,7 +196,13 @@ def run_scan(api_key, category_urls, page_from=1, page_to=9):
 
             log(f"  → Category total: {cat_flagged} flagged products")
 
-        log(f"\n✅ Scan complete! Total flagged: {len(all_results)} | Credits used: ~{total_credits}")
+        max_credits, used_credits = get_credits_remaining(api_key)
+        if max_credits != "?":
+            remaining = int(max_credits) - int(used_credits)
+            log(f"\n✅ Scan complete! Total flagged: {len(all_results)} | Credits used this session: ~{total_credits} | Remaining: {remaining}"
+)
+        else:
+            log(f"\n✅ Scan complete! Total flagged: {len(all_results)} | Credits used this session: ~{total_credits}")
 
     except Exception as e:
         with state_lock:

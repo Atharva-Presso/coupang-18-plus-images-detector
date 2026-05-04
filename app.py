@@ -105,7 +105,9 @@ def fetch_page(api_key, url, retries=3):
                 timeout=180,
             )
             cost = resp.headers.get("Spb-Cost", "?")
+            credits_remaining = resp.headers.get("Spb-Available", "?")
             if resp.status_code == 200:
+                log(f"    💳 Credits remaining: {credits_remaining} (cost this page: {cost})")
                 return resp.text, cost
             log(f"    ⚠ HTTP {resp.status_code} (attempt {attempt+1}) — {url}")
             if resp.status_code == 401:

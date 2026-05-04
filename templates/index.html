@@ -1,554 +1,526 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Coupang 18+ Badge Scanner</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a1a;
-            padding: 24px;
-            line-height: 1.5;
-        }
-        .container { max-width: 1280px; margin: 0 auto; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coupang 18+ Badge Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #141820;
+    --surface2: #1c2230;
+    --border: #2a3245;
+    --accent: #ff4d6d;
+    --accent2: #00e5a0;
+    --warn: #ffb347;
+    --text: #e8eaf0;
+    --muted: #6b7a99;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
 
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-        .header-logo {
-            background: #e8423f;
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            letter-spacing: 0.5px;
-        }
-        .header h1 { font-size: 20px; color: #1a1a1a; }
-        .header .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Layout */
-        .top-grid {
-            display: grid;
-            grid-template-columns: 420px 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .card-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f3f4f6;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px;
+  }
 
-        /* Form elements */
-        .field { margin-bottom: 14px; }
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 5px;
-        }
-        input[type="password"], input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 8px 11px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: monospace;
-            transition: border-color 0.15s;
-        }
-        textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 10px 11px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 12px;
-            resize: vertical;
-            transition: border-color 0.15s;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-        }
-        .helper { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-badge {
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 10px;
+    letter-spacing: 1px;
+  }
+  header h1 {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .status-pill {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+  .dot.running { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); animation: pulse 1s infinite; }
+  .dot.done    { background: var(--accent2); }
+  .dot.error   { background: var(--accent); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-        /* Page range row */
-        .page-range-row {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        .page-range-row .field { flex: 1; margin-bottom: 0; }
+  /* ── Layout ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+    height: calc(100vh - 120px);
+    min-height: 500px;
+  }
 
-        /* Cost estimate */
-        .cost-badge {
-            background: #fef3c7;
-            border: 1px solid #fde68a;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: #92400e;
-            margin-bottom: 14px;
-        }
-        .cost-badge strong { color: #b45309; }
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
 
-        /* Buttons */
-        .btn-row { display: flex; gap: 8px; margin-top: 4px; }
-        button {
-            padding: 9px 18px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: background 0.15s, opacity 0.15s;
-        }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
-        .btn-stop { background: #ef4444; color: white; display: none; }
-        .btn-stop:hover { background: #dc2626; }
-        .btn-download { background: #10b981; color: white; }
-        .btn-download:hover { background: #059669; }
-        .btn-download:disabled { background: #6ee7b7; cursor: not-allowed; }
+  /* ── Form elements ── */
+  label {
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+  }
+  input, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 12px;
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { height: 140px; line-height: 1.6; }
 
-        /* Status bar */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .stat-box {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px 12px;
-            text-align: center;
-        }
-        .stat-label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 20px; font-weight: 700; color: #111827; margin-top: 2px; }
-        .stat-value.idle { color: #9ca3af; }
-        .stat-value.running { color: #f59e0b; }
-        .stat-value.done { color: #10b981; }
-        .stat-value.stopped { color: #ef4444; }
+  .input-group { display: flex; flex-direction: column; }
 
-        /* Progress bar */
-        .progress-wrap {
-            margin-top: 12px;
-            background: #f3f4f6;
-            border-radius: 4px;
-            height: 6px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #6366f1);
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-        .progress-bar.done { background: #10b981; }
+  /* ── Buttons ── */
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 11px 20px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover:not(:disabled) { background: #ff2d52; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+  .btn-secondary:hover:not(:disabled) { background: rgba(0,229,160,0.08); }
+  .btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn { flex: 1; }
 
-        /* Log */
-        .log {
-            background: #111827;
-            color: #d1d5db;
-            font-family: "Consolas", "Monaco", monospace;
-            font-size: 11.5px;
-            padding: 14px 16px;
-            border-radius: 8px;
-            height: 420px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            line-height: 1.65;
-        }
-        .log-empty { color: #4b5563; font-style: italic; }
-        .log-line-ok { color: #6ee7b7; }
-        .log-line-warn { color: #fcd34d; }
-        .log-line-err { color: #f87171; }
+  /* ── Progress ── */
+  .progress-block { display: flex; flex-direction: column; gap: 6px; }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .progress-bar-bg {
+    height: 4px;
+    background: var(--surface2);
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent2);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 2px;
+  }
+  .stat {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent2);
+    display: block;
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
 
-        /* Results table */
-        .results-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0;
-        }
-        .results-count {
-            font-size: 12px;
-            color: #6b7280;
-            font-weight: 500;
-        }
-        .results-count span { color: #111827; font-weight: 700; }
-        .table-wrap {
-            max-height: 340px;
-            overflow-y: auto;
-            margin-top: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th {
-            background: #f9fafb;
-            padding: 9px 12px;
-            text-align: left;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #6b7280;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-        }
-        td {
-            padding: 9px 12px;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f9fafb; }
-        td a { color: #3b82f6; text-decoration: none; font-weight: 500; }
-        td a:hover { text-decoration: underline; }
-        .badge-18 {
-            display: inline-block;
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 1px 5px;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-        .empty-row td { text-align: center; color: #9ca3af; padding: 40px; }
+  /* ── Log panel ── */
+  .log-panel {
+    grid-row: 1 / 3;
+    overflow: hidden;
+  }
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: #8fa0c0;
+    padding-right: 4px;
+  }
+  .log-body::-webkit-scrollbar { width: 4px; }
+  .log-body::-webkit-scrollbar-track { background: transparent; }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-line { padding: 1px 0; }
+  .log-line.ok  { color: var(--accent2); }
+  .log-line.err { color: var(--accent); }
+  .log-line.cat { color: #c0d0ff; font-weight: 600; }
+  .log-line.done { color: var(--warn); }
 
-        /* Error */
-        .error-box {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-            padding: 10px 13px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-top: 10px;
-            display: none;
-        }
-    </style>
+  /* ── Results table ── */
+  .results-card {
+    grid-column: 1 / 3;
+    overflow: hidden;
+  }
+  .table-wrap {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .table-wrap::-webkit-scrollbar { width: 4px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--surface);
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(42,50,69,0.5);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td {
+    padding: 9px 12px;
+    vertical-align: middle;
+  }
+  .td-name { color: var(--text); max-width: 320px; }
+  .td-url a, .td-cat a {
+    color: #6090d0;
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .td-url a:hover, .td-cat a:hover { color: var(--accent2); text-decoration: underline; }
+  .badge-18 {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 5px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .error-banner {
+    background: rgba(255,77,109,0.12);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 14px;
+    display: none;
+  }
+</style>
 </head>
 <body>
-<div class="container">
 
-    <div class="header">
-        <div class="header-logo">COUPANG TW</div>
-        <div>
-            <h1>18+ Badge Scanner</h1>
-            <div class="sub">Detects products where the thumbnail is replaced by the High18.png age-gate placeholder</div>
-        </div>
+<header>
+  <div class="logo-badge">18+</div>
+  <div>
+    <h1>Coupang Badge Scanner</h1>
+    <p>Detect 18+ flagged products across category pages</p>
+  </div>
+  <div class="status-pill">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Idle</span>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- LEFT: Config -->
+  <div class="card">
+    <div class="card-title">Configuration</div>
+
+    <div class="input-group">
+      <label>SCRAPINGBEE API KEY</label>
+      <input type="password" id="apiKey" placeholder="Paste your API key…">
     </div>
 
-    <div class="top-grid">
-        <!-- Left: Input card -->
-        <div class="card">
-            <div class="card-title">Configuration</div>
-
-            <div class="field">
-                <label>ScrapingBee API Key</label>
-                <input type="password" id="apiKey" placeholder="Leave blank to use env var SCRAPINGBEE_API_KEY">
-                <div class="helper">Stored in browser memory only, never saved to disk.</div>
-            </div>
-
-            <div class="field">
-                <label>Category URLs <span style="font-weight:400;color:#9ca3af">(one per line)</span></label>
-                <textarea id="urls" oninput="updateCostEstimate()"
-                    placeholder="https://www.tw.coupang.com/categories/%E6%89%8B%E6%A9%9F-550279
-https://www.tw.coupang.com/categories/..."></textarea>
-            </div>
-
-            <div class="field">
-                <label>Page Range</label>
-                <div class="page-range-row">
-                    <div class="field">
-                        <label style="font-weight:400;color:#6b7280">From</label>
-                        <input type="number" id="startPage" value="1" min="1" max="100" oninput="updateCostEstimate()">
-                    </div>
-                    <div class="field">
-                        <label style="font-weight:400;color:#6b7280">To</label>
-                        <input type="number" id="endPage" value="9" min="1" max="100" oninput="updateCostEstimate()">
-                    </div>
-                </div>
-                <div class="helper">Default: pages 1–9 per category. Max 100.</div>
-            </div>
-
-            <div class="cost-badge" id="costBadge">
-                Enter URLs above to estimate cost
-            </div>
-
-            <div class="btn-row">
-                <button class="btn-primary" id="startBtn" onclick="startScan()">▶ Start Scan</button>
-                <button class="btn-stop" id="stopBtn" onclick="stopScan()">■ Stop</button>
-                <button class="btn-download" id="downloadBtn" onclick="downloadCsv()" disabled>↓ Download CSV</button>
-            </div>
-
-            <div class="error-box" id="errorBox"></div>
-
-            <div class="status-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Status</div>
-                    <div class="stat-value idle" id="statStatus">Idle</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Category</div>
-                    <div class="stat-value" id="statCategory">0 / 0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Pages</div>
-                    <div class="stat-value" id="statPages">0 / 0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Flagged</div>
-                    <div class="stat-value" id="statFlagged">0</div>
-                </div>
-            </div>
-
-            <div class="progress-wrap">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-
-        <!-- Right: Log card -->
-        <div class="card">
-            <div class="card-title">Live Log</div>
-            <div class="log" id="log"><span class="log-empty">Waiting to start...</span></div>
-        </div>
+    <div class="input-group">
+      <label>CATEGORY URLs — one per line</label>
+      <textarea id="urlsInput" placeholder="https://www.tw.coupang.com/categories/…&#10;https://www.tw.coupang.com/categories/…"></textarea>
     </div>
 
-    <!-- Results table -->
-    <div class="card">
-        <div class="results-header">
-            <div class="card-title" style="margin-bottom:0;border-bottom:none;">Flagged Products</div>
-            <div class="results-count">Found <span id="resultCount">0</span> products</div>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:40%">Product Name</th>
-                        <th style="width:15%">Product Link</th>
-                        <th>Category URL</th>
-                    </tr>
-                </thead>
-                <tbody id="resultsBody">
-                    <tr class="empty-row"><td colspan="3">No results yet — start a scan above</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="error-banner" id="errorBanner"></div>
+
+    <div class="progress-block">
+      <div class="progress-header">
+        <span id="progressLabel">Ready</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
     </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-val" id="statPages">0</span>
+        <div class="stat-lbl">Pages Done</div>
+      </div>
+      <div class="stat">
+        <span class="stat-val" id="statFlagged">0</span>
+        <div class="stat-lbl">Flagged</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnStart" onclick="startScan()">▶ Start Scan</button>
+      <button class="btn btn-secondary" id="btnDownload" onclick="downloadCSV()" disabled>↓ CSV</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Live Log -->
+  <div class="card log-panel">
+    <div class="card-title">Live Log</div>
+    <div class="log-body" id="logBody">
+      <div class="log-line" style="color:var(--muted)">Waiting to start…</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Results -->
+  <div class="card results-card">
+    <div class="card-title">Flagged Products — <span id="resultCount">0</span> found</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Product Name</th>
+            <th>Product URL</th>
+            <th>Category URL</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="4" class="empty-state">No results yet — run a scan to populate this table.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 </div>
 
 <script>
-    let pollInterval = null;
-    let lastRowCount = 0;
+  let pollTimer = null;
+  let lastLogCount = 0;
 
-    function showError(msg) {
-        const el = document.getElementById('errorBox');
-        el.textContent = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 8000);
-    }
+  function startScan() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const urls   = document.getElementById('urlsInput').value.trim();
+    hideError();
 
-    function updateCostEstimate() {
-        const urls = document.getElementById('urls').value.trim();
-        const urlCount = urls ? urls.split('\n').filter(u => u.trim().startsWith('http')).length : 0;
-        const start = parseInt(document.getElementById('startPage').value) || 1;
-        const end = parseInt(document.getElementById('endPage').value) || 9;
-        const pages = Math.max(0, end - start + 1);
-        const totalPages = urlCount * pages;
-        const credits = totalPages * 75;
-        const badge = document.getElementById('costBadge');
-        if (urlCount === 0) {
-            badge.textContent = 'Enter URLs above to estimate cost';
+    if (!apiKey) { showError('API key is required.'); return; }
+    if (!urls)   { showError('Enter at least one category URL.'); return; }
+
+    fetch('/start', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ api_key: apiKey, urls })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { showError(d.error); return; }
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnDownload').disabled = true;
+      document.getElementById('logBody').innerHTML = '';
+      lastLogCount = 0;
+      setDot('running', 'Scanning…');
+      pollTimer = setInterval(pollStatus, 1500);
+    });
+  }
+
+  function pollStatus() {
+    fetch('/status').then(r => r.json()).then(data => {
+      // Progress
+      const pct = data.progress;
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressLabel').textContent =
+        data.running ? `Page ${data.pages_done} / ${data.total_pages}` : 'Complete';
+      document.getElementById('statPages').textContent = data.pages_done;
+      document.getElementById('statFlagged').textContent = data.flagged_count;
+
+      // Logs (append only new lines)
+      const logEl = document.getElementById('logBody');
+      if (data.logs.length > lastLogCount) {
+        const newLines = data.logs.slice(lastLogCount);
+        newLines.forEach(line => {
+          const div = document.createElement('div');
+          div.className = 'log-line ' + classForLine(line);
+          div.textContent = line;
+          logEl.appendChild(div);
+        });
+        lastLogCount = data.logs.length;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Results table
+      if (data.results.length > 0) {
+        renderResults(data.results);
+        document.getElementById('resultCount').textContent = data.results.length;
+      }
+
+      // Done
+      if (!data.running) {
+        clearInterval(pollTimer);
+        document.getElementById('btnStart').disabled = false;
+        if (data.results.length > 0) {
+          document.getElementById('btnDownload').disabled = false;
+        }
+        if (data.error) {
+          showError('Scan error: ' + data.error);
+          setDot('error', 'Error');
         } else {
-            badge.innerHTML = `<strong>${urlCount}</strong> categories × <strong>${pages}</strong> pages = <strong>${totalPages} pages</strong> → est. <strong>${credits.toLocaleString()} credits</strong>`;
+          setDot('done', 'Done');
         }
-    }
+      }
+    });
+  }
 
-    async function startScan() {
-        const apiKey = document.getElementById('apiKey').value;
-        const urls = document.getElementById('urls').value;
-        const startPage = parseInt(document.getElementById('startPage').value);
-        const endPage = parseInt(document.getElementById('endPage').value);
+  function classForLine(line) {
+    if (line.includes('✅') || line.includes('complete')) return 'ok';
+    if (line.includes('✗') || line.includes('Error') || line.includes('error')) return 'err';
+    if (line.includes('📂')) return 'cat';
+    if (line.includes('→') || line.includes('Total')) return 'done';
+    return '';
+  }
 
-        if (!urls.trim()) { showError('Please enter at least one category URL'); return; }
+  function renderResults(results) {
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '';
+    results.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      const shortCat = r.category_url.replace('https://www.tw.coupang.com/categories/', '').split('?')[0];
+      const shortProd = r.url.replace('https://www.tw.coupang.com/products/', '');
+      tr.innerHTML = `
+        <td style="color:var(--muted);font-family:var(--mono);font-size:11px">${i+1}</td>
+        <td class="td-name"><span class="badge-18">18+</span>${escHtml(r.name)}</td>
+        <td class="td-url"><a href="${r.url}" target="_blank">${shortProd}</a></td>
+        <td class="td-cat"><a href="${r.category_url}" target="_blank">${decodeURIComponent(shortCat)}</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-        const btn = document.getElementById('startBtn');
-        btn.disabled = true;
-        btn.textContent = 'Starting...';
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
-        try {
-            const resp = await fetch('/scan', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ api_key: apiKey, urls, start_page: startPage, end_page: endPage })
-            });
-            const data = await resp.json();
-            if (!resp.ok) {
-                showError(data.error || 'Failed to start');
-                btn.disabled = false;
-                btn.textContent = '▶ Start Scan';
-                return;
-            }
-            btn.textContent = 'Scanning...';
-            document.getElementById('stopBtn').style.display = 'inline-block';
-            document.getElementById('downloadBtn').disabled = true;
-            document.getElementById('log').innerHTML = '';
-            document.getElementById('resultsBody').innerHTML =
-                '<tr class="empty-row"><td colspan="3">Scan running, results will appear here...</td></tr>';
-            lastRowCount = 0;
-            pollInterval = setInterval(pollStatus, 1500);
-        } catch (e) {
-            showError('Network error: ' + e.message);
-            btn.disabled = false;
-            btn.textContent = '▶ Start Scan';
-        }
-    }
+  function downloadCSV() { window.location = '/download'; }
 
-    async function stopScan() {
-        try {
-            await fetch('/stop', { method: 'POST' });
-            document.getElementById('stopBtn').textContent = 'Stopping...';
-        } catch(e) {}
-    }
+  function setDot(state, label) {
+    document.getElementById('statusDot').className = 'dot ' + state;
+    document.getElementById('statusText').textContent = label;
+  }
 
-    async function pollStatus() {
-        try {
-            const resp = await fetch('/status');
-            const data = await resp.json();
-
-            // Status
-            const sv = document.getElementById('statStatus');
-            if (data.stop_requested && data.running) {
-                sv.textContent = 'Stopping'; sv.className = 'stat-value stopped';
-            } else if (data.running) {
-                sv.textContent = 'Running'; sv.className = 'stat-value running';
-            } else if (data.finished_at) {
-                sv.textContent = 'Done'; sv.className = 'stat-value done';
-            } else {
-                sv.textContent = 'Idle'; sv.className = 'stat-value idle';
-            }
-
-            // Stats
-            document.getElementById('statCategory').textContent =
-                `${data.current_category_index} / ${data.total_categories}`;
-            document.getElementById('statPages').textContent =
-                `${data.total_pages_done} / ${data.total_pages_planned}`;
-            document.getElementById('statFlagged').textContent = data.row_count;
-            document.getElementById('resultCount').textContent = data.row_count;
-
-            // Progress bar
-            const pct = data.total_pages_planned > 0
-                ? Math.round((data.total_pages_done / data.total_pages_planned) * 100)
-                : 0;
-            const bar = document.getElementById('progressBar');
-            bar.style.width = pct + '%';
-            bar.className = 'progress-bar' + (data.finished_at && !data.running ? ' done' : '');
-
-            // Log
-            const logEl = document.getElementById('log');
-            const wasAtBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 40;
-            logEl.textContent = data.log.join('\n');
-            if (wasAtBottom) logEl.scrollTop = logEl.scrollHeight;
-
-            // Live results if new rows
-            if (data.row_count !== lastRowCount) {
-                lastRowCount = data.row_count;
-                loadResults();
-            }
-
-            // Done
-            if (!data.running && data.finished_at) {
-                clearInterval(pollInterval);
-                pollInterval = null;
-                const btn = document.getElementById('startBtn');
-                btn.disabled = false;
-                btn.textContent = '▶ Start Scan';
-                document.getElementById('stopBtn').style.display = 'none';
-                if (data.row_count > 0) {
-                    document.getElementById('downloadBtn').disabled = false;
-                }
-                loadResults();
-            }
-        } catch(e) { console.error('poll error:', e); }
-    }
-
-    async function loadResults() {
-        try {
-            const resp = await fetch('/results');
-            const data = await resp.json();
-            const tbody = document.getElementById('resultsBody');
-            document.getElementById('resultCount').textContent = data.rows ? data.rows.length : 0;
-            if (!data.rows || data.rows.length === 0) {
-                tbody.innerHTML = '<tr class="empty-row"><td colspan="3">No flagged products found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = data.rows.map(r => `
-                <tr>
-                    <td>${escapeHtml(r.product_name)}<span class="badge-18">18+</span></td>
-                    <td><a href="${escapeHtml(r.product_url)}" target="_blank">View ↗</a></td>
-                    <td><a href="${escapeHtml(r.category_url_found_on)}" target="_blank">${shortenUrl(r.category_url_found_on)}</a></td>
-                </tr>
-            `).join('');
-        } catch(e) { console.error('results error:', e); }
-    }
-
-    function escapeHtml(s) {
-        const div = document.createElement('div');
-        div.textContent = s || '';
-        return div.innerHTML;
-    }
-
-    function shortenUrl(u) {
-        try {
-            const parts = u.split('/categories/');
-            if (parts.length > 1) {
-                const slug = decodeURIComponent(parts[1]).replace(/\?.*$/, '');
-                return slug.length > 45 ? slug.substring(0, 45) + '…' : slug;
-            }
-        } catch(e) {}
-        return u;
-    }
-
-    function downloadCsv() { window.location.href = '/download'; }
-
-    // Initialize cost estimate
-    updateCostEstimate();
-    // Poll once on load in case a scan is already running
-    pollStatus();
+  function showError(msg) {
+    const b = document.getElementById('errorBanner');
+    b.textContent = '⚠ ' + msg;
+    b.style.display = 'block';
+  }
+  function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
 </script>
 </body>
 </html>

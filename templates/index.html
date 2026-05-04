@@ -370,6 +370,7 @@
       <button class="btn btn-primary" id="btnStart" onclick="startScan()">▶ Start Scan</button>
       <button class="btn btn-secondary" id="btnDownload" onclick="downloadCSV()" disabled>↓ CSV</button>
     </div>
+    <button onclick="resetScan()" style="background:transparent;color:var(--muted);border:1px solid var(--border);font-family:var(--mono);font-size:11px;padding:8px;cursor:pointer;width:100%;margin-top:-4px">↺ Reset / Unlock Scan</button>
   </div>
 
   <!-- RIGHT: Live Log -->
@@ -405,6 +406,25 @@
 <script>
   let pollTimer = null;
   let lastLogCount = 0;
+
+  function resetScan() {
+    fetch('/reset', { method: 'POST' }).then(() => {
+      clearInterval(pollTimer);
+      document.getElementById('btnStart').disabled = false;
+      document.getElementById('btnDownload').disabled = true;
+      document.getElementById('logBody').innerHTML = '<div class="log-line" style="color:var(--muted)">Reset. Ready to start…</div>';
+      document.getElementById('progressBar').style.width = '0%';
+      document.getElementById('progressPct').textContent = '0%';
+      document.getElementById('progressLabel').textContent = 'Ready';
+      document.getElementById('statPages').textContent = '0';
+      document.getElementById('statFlagged').textContent = '0';
+      document.getElementById('resultsBody').innerHTML = '<tr><td colspan="4" class="empty-state">No results yet — run a scan to populate this table.</td></tr>';
+      document.getElementById('resultCount').textContent = '0';
+      hideError();
+      setDot('', 'Idle');
+      lastLogCount = 0;
+    });
+  }
 
   function startScan() {
     const apiKey = document.getElementById('apiKey').value.trim();

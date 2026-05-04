@@ -223,6 +223,14 @@ def status():
             "error": scan_state["error"],
         })
 
+@app.route("/reset", methods=["POST"])
+def reset():
+    with state_lock:
+        scan_state.update({"running": False, "logs": [], "results": [],
+                           "progress": 0, "flagged_count": 0,
+                           "pages_done": 0, "total_pages": 0, "error": None})
+    return jsonify({"ok": True})
+
 @app.route("/download")
 def download():
     with state_lock:
